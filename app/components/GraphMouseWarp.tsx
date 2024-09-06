@@ -4,8 +4,29 @@ type Axis = 'row' | 'col'
 
 const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 const WARP_OFFSETS = [0.05, 0.1, 0.1, 0.1, 0.05]
-const PATH_ROW_INDEXES = [5, 7, 10, 12, 15, 17, 20, 22, 25, 27]
-const PATH_COL_INDEXES = [4, 6, 9, 11, 14, 16, 19, 21, 24, 26]
+const PATH_ROW_ARC_INDEXES = [12, 15, 17, 20, 22]
+const PATH_COL_ARC_INDEXES = [11, 14, 16, 19, 21]
+const PATH_ROW_INDEXES = [5, 7, 10, ...PATH_ROW_ARC_INDEXES, 25, 27]
+const PATH_COL_INDEXES = [4, 6, 9, ...PATH_COL_ARC_INDEXES, 24, 26]
+
+const INDEXES = {
+  row: {
+    start: 2,
+    end: 30,
+    length: 29,
+    path: PATH_ROW_INDEXES,
+    warp: PATH_COL_INDEXES,
+    arc: PATH_ROW_ARC_INDEXES,
+  },
+  col: {
+    start: 1,
+    end: 29,
+    length: 30,
+    path: PATH_COL_INDEXES,
+    warp: PATH_ROW_INDEXES,
+    arc: PATH_COL_ARC_INDEXES,
+  },
+}
 
 const PATH = [
   // Cursor Start
@@ -59,55 +80,25 @@ class Line {
   public position: number
   public length: number
 
-  private pathStartIndex: 1 | 2
-  private pathEndIndex: 29 | 30
-  private pathLengthIndex: 29 | 30
-  private arcStartIndex: 9 | 10
-  private pathPointIndexes: number[]
-  private warpPointIndexes: number[]
-  private arcPointIndexes: number[]
-
   constructor({ axis, position, length }: LineProps) {
     this.axis = axis
     this.position = position
     this.length = length
-
-    switch (axis) {
-      case 'row':
-        this.pathStartIndex = 2
-        this.pathEndIndex = 30
-        this.pathLengthIndex = 29
-        this.arcStartIndex = 9
-        this.pathPointIndexes = PATH_ROW_INDEXES
-        this.warpPointIndexes = PATH_COL_INDEXES
-        this.arcPointIndexes = [12, 15, 17, 20, 22]
-        break
-      case 'col':
-        this.pathStartIndex = 1
-        this.pathEndIndex = 29
-        this.pathLengthIndex = 30
-        this.arcStartIndex = 10
-        this.pathPointIndexes = PATH_COL_INDEXES
-        this.warpPointIndexes = PATH_ROW_INDEXES
-        this.arcPointIndexes = [11, 14, 16, 19, 21]
-        break
-    }
-
     this.node = document.createElementNS(SVG_NAMESPACE, 'path')
     this.flatten()
   }
 
   public warp(max: number, m: number, n: number) {
+    const { arc, warp } = INDEXES[this.axis]
     const pathArr = (this.node.getAttribute('d') as string).split(' ')
-    // const arcStartPosition = parseFloat(pathArr[this.arcStartIndex])
 
     if (Math.abs(this.position - m) < max) {
       void (m < this.position && (max *= -1))
 
       // update arch points
       const diff = max + (this.position - m)
-      for (const i in this.arcPointIndexes) {
-        pathArr[this.arcPointIndexes[i]] = (
+      for (const i in arc) {
+        pathArr[arc[i]] = (
           this.position -
           diff * WARP_OFFSETS[i]
         ).toString()
@@ -115,17 +106,14 @@ class Line {
     }
     // else if (this.position !== arcStartPosition) {
     //   // update old arcs out of range to straight
-    //   for (const index of this.arcPointIndexes) {
+    //   for (const index of arc) {
     //     pathArr[index] = this.position.toString()
     //   }
     // }
 
     // center opposite axi points
-    for (let i = 0; i < this.warpPointIndexes.length; i++) {
-      pathArr[this.warpPointIndexes[i]] = (
-        n +
-        (-100 + i * 20)
-      ).toString()
+    for (let i = 0; i < warp.length; i++) {
+      pathArr[warp[i]] = (n + (-100 + i * 20)).toString()
     }
 
     this.node.setAttribute('d', pathArr.join(' '))
@@ -138,10 +126,17 @@ class Line {
   private flatten() {
     const path = [...PATH]
 
-    path[this.pathStartIndex] = this.position
-    this.pathPointIndexes.forEach((i) => (path[i] = this.position))
-    path[this.pathEndIndex] = this.position
-    path[this.pathLengthIndex] = this.length
+    const {
+      start,
+      path: pathIndexes,
+      end,
+      length,
+    } = INDEXES[this.axis]
+
+    path[start] = this.position
+    pathIndexes.forEach((i) => (path[i] = this.position))
+    path[end] = this.position
+    path[length] = this.length
 
     this.node.setAttribute('d', path.join(' '))
   }
