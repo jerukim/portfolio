@@ -66,18 +66,17 @@ export function GraphMouseWarp() {
     }
   }
 
-  // on mount draw initial grid lines
   React.useLayoutEffect(() => {
     if (containerRef.current) {
+      // Draw initial grid lines
       drawGrid(containerRef.current.getBoundingClientRect())
 
-      // Observe container resize to add/remove grid lines
+      // Redraw grid lines on container resize
       observer.current = new ResizeObserver((entries) => {
         for (const entry of entries) {
           drawGrid(entry.contentRect)
         }
       })
-
       observer.current.observe(containerRef.current)
 
       return () => {
