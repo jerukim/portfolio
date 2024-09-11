@@ -33,7 +33,12 @@ class DistortionGrid {
     this.canvas.addEventListener('mouseleave', this.handleMouseLeave)
   }
 
-  addCurve(axis: 'x' | 'y', m: number, n: number, weight: number) {
+  private addCurve(
+    axis: 'x' | 'y',
+    m: number,
+    n: number,
+    weight: number
+  ) {
     const curves: [Coordinate, Coordinate][] = [
       [
         [m, n - this.mass + this.gap * this.control[0]],
