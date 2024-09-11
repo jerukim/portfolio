@@ -1,5 +1,7 @@
 import * as React from 'react'
 
+// TODO: optimize by only clearing rows/cols that need to be redrawn
+
 type Coordinate = [x: number, y: number]
 
 class DistortionGrid {
@@ -159,7 +161,7 @@ export function GraphMouseWarp() {
     <canvas
       ref={canvasRef}
       id="warp-grid"
-      className="h-screen w-screen"
+      className="h-screen w-screen bg-slate-100"
     />
   )
 }
