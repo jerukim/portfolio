@@ -29,8 +29,8 @@ class DistortionGrid {
     this.ctx = ctx
 
     this.observer.observe(this.canvas)
-    this.canvas.addEventListener('mousemove', this.handleMouseMove)
-    this.canvas.addEventListener('mouseleave', this.handleMouseLeave)
+    document.addEventListener('mousemove', this.handleMouseMove)
+    document.addEventListener('mouseleave', this.handleMouseLeave)
   }
 
   private addCurve(
@@ -143,15 +143,12 @@ class DistortionGrid {
 
   public cleanup = () => {
     this.observer.unobserve(this.canvas)
-    this.canvas.removeEventListener('mousemove', this.handleMouseMove)
-    this.canvas.removeEventListener(
-      'mouseleave',
-      this.handleMouseLeave
-    )
+    document.removeEventListener('mousemove', this.handleMouseMove)
+    document.removeEventListener('mouseleave', this.handleMouseLeave)
   }
 }
 
-export function GraphMouseWarp() {
+export function GraphMouseWarp({ className }: { className: string }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
   const grid = React.useRef<DistortionGrid>()
 
@@ -163,11 +160,5 @@ export function GraphMouseWarp() {
     return grid.current?.cleanup
   }, [])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      id="warp-grid"
-      className="h-screen w-screen bg-slate-100"
-    />
-  )
+  return <canvas ref={canvasRef} className={className} />
 }
