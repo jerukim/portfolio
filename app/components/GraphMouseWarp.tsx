@@ -7,8 +7,8 @@ type Coordinate = [x: number, y: number]
 class DistortionGrid {
   public mass = 100
   public gap = 20
-  public offsets = [0.05, 0.1]
-  public control = [2.5, 3.25, 4.5]
+  public offsets: [number, number] = [0.05, 0.1]
+  public control: [number, number, number] = [2.5, 3.25, 4.5]
   public strokeStyle = '#96ADE9'
 
   private x: number | null = null
