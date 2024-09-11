@@ -25,7 +25,7 @@ function LSDChar({ children }: { children: string }) {
   return (
     <span
       className={clsx(
-        'inline-block leading-none',
+        'inline-block leading-none text-5xl',
         children === ' ' && 'w-2'
       )}
       style={style}
