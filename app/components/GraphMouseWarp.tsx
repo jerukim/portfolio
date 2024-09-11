@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 // TODO: optimize by only clearing rows/cols that need to be redrawn
+// TODO: different warp styles: barrel, pincuhsion, mustache (default)
 
 type Coordinate = [x: number, y: number]
 
