@@ -1,7 +1,13 @@
 import * as React from 'react'
+
+type Coordinate = [x: number, y: number]
+
 class DistortionGrid {
   public mass = 100
   public gap = 20
+  public offsets = [0.05, 0.12]
+  public control = [1, 2, 4]
+  public strokeStyle = '#96ADE9'
 
   private x: number | null = null
   private y: number | null = null
@@ -11,6 +17,7 @@ class DistortionGrid {
     this.handleResize(entry)
   )
 
+  // support mass, gap, offets, controls options
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
 
@@ -23,101 +30,86 @@ class DistortionGrid {
     this.canvas.addEventListener('mouseleave', this.handleMouseLeave)
   }
 
-  drawCircle(x: number, y: number, r: number, fill: string) {
-    this.ctx.beginPath()
-    this.ctx.arc(x, y, r, 0, 2 * Math.PI)
-    this.ctx.fillStyle = fill
-    this.ctx.fill()
-    this.ctx.closePath()
+  addCurve(axis: 'x' | 'y', m: number, n: number, weight: number) {
+    const curves: [Coordinate, Coordinate][] = [
+      [
+        [m, n - this.mass + this.gap * this.control[0]],
+        [
+          m - weight * this.offsets[0],
+          n - this.mass + this.gap * this.control[1],
+        ],
+      ],
+      [
+        [
+          m - weight * this.offsets[1],
+          n - this.mass + this.gap * this.control[2],
+        ],
+        [m - weight * this.offsets[1], n],
+      ],
+      [
+        [
+          m - weight * this.offsets[1],
+          n + this.mass - this.gap * this.control[2],
+        ],
+        [
+          m - weight * this.offsets[0],
+          n + this.mass - this.gap * this.control[1],
+        ],
+      ],
+      [
+        [m, n + this.mass - this.gap * this.control[0]],
+        [m, n + this.mass],
+      ],
+    ]
+
+    for (const part of curves) {
+      if (axis === 'y') {
+        part.forEach((coordinate) => coordinate.reverse())
+      }
+
+      const [control, to] = part
+
+      this.ctx.quadraticCurveTo(...control, ...to)
+    }
   }
 
   private drawGrid = () => {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-
-    const offset1 = 0.05
-    const offset2 = 0.1
-    const control1 = 1
-    const control2 = 4
 
     for (let x = 0; x < this.canvas.width; x += this.gap) {
       this.ctx.beginPath()
       this.ctx.moveTo(x, 0)
 
       if (this.x && this.y) {
-        const diff = (x > this.x ? -1 : 1) * this.mass + x - this.x
-
         this.ctx.lineTo(x, this.y - this.mass)
 
-        if (this.x && Math.abs(x - this.x) < this.mass) {
-          this.ctx.quadraticCurveTo(
-            x,
-            this.y - this.mass + this.gap * control1,
-            x - diff * offset1,
-            this.y - this.mass + this.gap * 2
-          )
-          this.ctx.quadraticCurveTo(
-            x - diff * offset2,
-            this.y - this.mass + this.gap * control2,
-            x - diff * offset2,
-            this.y
-          )
-          this.ctx.quadraticCurveTo(
-            x - diff * offset2,
-            this.y + this.mass - this.gap * control2,
-            x - diff * offset1,
-            this.y + this.mass - this.gap * 2
-          )
-          this.ctx.quadraticCurveTo(
-            x,
-            this.y + this.mass - this.gap * control1,
-            x,
-            this.y + this.mass
-          )
+        if (Math.abs(x - this.x) < this.mass) {
+          const diff = (x > this.x ? -1 : 1) * this.mass + x - this.x
+          this.addCurve('x', x, this.y, diff)
         }
       }
 
       this.ctx.lineTo(x, this.canvas.height)
+      this.ctx.strokeStyle = this.strokeStyle
       this.ctx.stroke()
       this.ctx.closePath()
     }
 
-    for (let y = 0; y < this.canvas.width; y += this.gap) {
+    for (let y = 0; y < this.canvas.height; y += this.gap) {
       this.ctx.beginPath()
       this.ctx.moveTo(0, y)
 
       if (this.x && this.y) {
-        const diff = (y > this.y ? -1 : 1) * this.mass + y - this.y
-
         this.ctx.lineTo(this.x - this.mass, y)
 
-        if (this.y && Math.abs(y - this.y) < this.mass) {
-          this.ctx.quadraticCurveTo(
-            this.x - this.mass + this.gap * control1,
-            y,
-            this.x - this.mass + this.gap * 2,
-            y - diff * offset1
-          )
-          this.ctx.quadraticCurveTo(
-            this.x - this.mass + this.gap * control2,
-            y - diff * offset2,
-            this.x,
-            y - diff * offset2
-          )
-          this.ctx.quadraticCurveTo(
-            this.x + this.mass - this.gap * control2,
-            y - diff * offset2,
-            this.x + this.mass - this.gap * 2,
-            y - diff * offset1
-          )
-          this.ctx.quadraticCurveTo(
-            this.x + this.mass - this.gap * control1,
-            y,
-            this.x + this.mass,
-            y
-          )
+        if (Math.abs(y - this.y) < this.mass) {
+          const diff = (y > this.y ? -1 : 1) * this.mass + y - this.y
+          this.addCurve('y', y, this.x, diff)
         }
       }
+
       this.ctx.lineTo(this.canvas.width, y)
+      this.ctx.strokeStyle = this.strokeStyle
       this.ctx.stroke()
       this.ctx.closePath()
     }
