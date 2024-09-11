@@ -1,5 +1,5 @@
 import type { MetaFunction } from '@remix-run/node'
-import { GraphMouseWarp } from '~/components/GraphMouseWarp'
+import { LSDText } from '~/components/LSDText'
 
 export const meta: MetaFunction = () => {
   return [
@@ -9,5 +9,11 @@ export const meta: MetaFunction = () => {
 }
 
 export default function Index() {
-  return <GraphMouseWarp />
+  return (
+    <div className=" flex flex-col items-center">
+      <LSDText className="text-center my-4 drop-shadow">
+        Jeru Kim
+      </LSDText>
+    </div>
+  )
 }
